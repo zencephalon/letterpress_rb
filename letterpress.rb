@@ -7,7 +7,6 @@ class Letterpress
     end
 
     def words_containing(letters)
-        letters = letters.chars.sort.join
         return @cache[letters] if !@cache[letters].nil?
         doc = Nokogiri::HTML(open("http://www.wordhippo.com/what-is/words-containing/#{letters}.html"))
         return nil if doc.text.match("No words found")
@@ -25,6 +24,7 @@ class Letterpress
 
     def words(letters_contain, letters_not)
         w = words_containing(letters_contain)
+        return nil if w.nil?
         w.reject! {|word| contains_banned_letter(word, letters_not)}
         w
     end
