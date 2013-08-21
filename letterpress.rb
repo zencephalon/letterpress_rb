@@ -4,7 +4,7 @@ require "open-uri"
 class Letterpress
     def initialize(letters)
         @cache, @letters_hash = {}, {}
-        letters.chars.each do |letter|
+        ('a'..'z').each do |letter|
             @letters_hash[letter] = letters.count letter
         end
     end
@@ -27,12 +27,17 @@ class Letterpress
 
     def words(letters_contain)
         w = []
-        letters_contain.chars.permutation do |perm|
+        perms = letters_contain.chars.permutation.to_a
+        puts "Checking #{perms.length} permutations:"
+        i = 1
+        perms.each do |perm|
+            puts "#{i}: #{perm.join}"
             w += words_containing(perm.join)
+            i += 1
         end
         return nil if w.empty?
         w.reject! {|word| no_letters(word)}
-        w
+        w.sort_by(&:length)
     end
 
     def no_letters(word)
