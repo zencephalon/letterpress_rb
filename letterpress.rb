@@ -2,14 +2,17 @@ require "nokogiri"
 require "open-uri"
 
 class Letterpress
-    def initialize
-        @cache = {}
+    def initialize(letters)
+        @cache, @letters_hash = {}, {}
+        letters.chars.each do |letter|
+            @letters_hash[letter] = letters.count letter
+        end
     end
 
     def words_containing(letters)
         return @cache[letters] if !@cache[letters].nil?
         doc = Nokogiri::HTML(open("http://www.wordhippo.com/what-is/words-containing/#{letters}.html"))
-        return nil if doc.text.match("No words found")
+        return [] if doc.text.match("No words found")
         words = doc.text.split("Words Found")[1].split("Search Again!")[0].split
         i = 2
         while true
@@ -22,16 +25,19 @@ class Letterpress
         words
     end
 
-    def words(letters_contain, letters_not)
-        w = words_containing(letters_contain)
-        return nil if w.nil?
-        w.reject! {|word| contains_banned_letter(word, letters_not)}
+    def words(letters_contain)
+        w = []
+        letters_contain.chars.permutation do |perm|
+            w += words_containing(perm.join)
+        end
+        return nil if w.empty?
+        w.reject! {|word| no_letters(word)}
         w
     end
 
-    def contains_banned_letter(word, letters)
-        letters.chars.each do |letter|
-            return true if word.include? letter
+    def no_letters(word)
+        @letters_hash.each do |letter, num|
+            return true if word.count(letter) > num
         end
         return false
     end
