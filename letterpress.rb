@@ -4,6 +4,7 @@ require "open-uri"
 class Letterpress
     def initialize(letters)
         @cache, @letters_hash = {}, {}
+        @dict = File.open('words/Words/en.txt', 'r').readlines.map(&:chomp)
         ('a'..'z').each do |letter|
             @letters_hash[letter] = letters.count letter
         end
@@ -11,18 +12,12 @@ class Letterpress
 
     def words_containing(letters)
         return @cache[letters] if !@cache[letters].nil?
-        doc = Nokogiri::HTML(open("http://www.wordhippo.com/what-is/words-containing/#{letters}.html"))
-        return [] if doc.text.match("No words found")
-        words = doc.text.split("Words Found")[1].split("Search Again!")[0].split
-        i = 2
-        while true
-            doc = Nokogiri::HTML(open("http://www.wordhippo.com/what-is/words-containing/#{letters}.html?page=#{i}"))
-            break if doc.text.match("No words found")
-            words += doc.text.split("Words Found")[1].split("Search Again!")[0].split
-            i += 1
+        letters_regex = /#{letters.chars.join(".*")}/
+        words = []
+        @dict.each do |word|
+            words << word if word.match(letters_regex)
         end
         @cache[letters] = words
-        words
     end
 
     def words(letters_contain)
