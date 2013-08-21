@@ -1,0 +1,3 @@
+[submodule "words"]
+	path = words
+	url = git://github.com/atebits/Words.git
